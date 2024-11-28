@@ -16,8 +16,11 @@ Then use the following APIs:
 GET localhost:8087/help prints you this help
 GET localhost:8087/task/{id} to get the status of a task
 GET localhost:8087/task/{id}?stopping=true|false to stop or resume a task
-GET localhost:8087/taskGroup/{id} to get the status of a task group (i.e. process)
-GET localhost:8087/taskGroup/{id}?restartstopping=true|false to stop or resume a task group
+GET localhost:8087/task/plan/{id}?plan=s10,r10 to set the plan for a task (e.g. 10s running, 10s stopped)
+GET localhost:8087/task/plan/{id} to get the current plan for a task
+GET localhost:8087/plans the current plans as JSON
+
+The same for taskGroup (process)
 ```
 
 Be aware that stopping a task for more than 30s will kill the scheduler.
@@ -57,6 +60,13 @@ You can resume it via:
 ```
 curl "localhost:8087/taskGroup/$(pgrep -f Ticker)?stopping=false"
 ```
+
+You can also set a sequence of stopping and running times via:
+```
+curl "localhost:8087/taskGroup/plan/$(pgrep -f Ticker)?plan=10s,5r,10s,5s"
+```
+
+This will stop the tasks of the task group for 10s, run it for 5s, stop it for 10s and stop it for 5s.
 
 ## Java Example
 

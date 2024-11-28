@@ -1,7 +1,5 @@
 package me.bechberger.taskcontrol;
 
-import me.bechberger.taskcontrol.util.ExtendedThreadInfo;
-
 public class Main {
 
     static class ClockThread extends Thread {

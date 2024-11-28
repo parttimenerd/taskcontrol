@@ -14,7 +14,6 @@ import me.bechberger.ebpf.type.Ptr;
 
 import static me.bechberger.ebpf.runtime.BpfDefinitions.bpf_cpumask_test_cpu;
 import static me.bechberger.ebpf.runtime.ScxDefinitions.*;
-import static me.bechberger.ebpf.runtime.ScxDefinitions.scx_bpf_dispatch_from_dsq;
 import static me.bechberger.ebpf.runtime.ScxDefinitions.scx_dsq_id_flags.SCX_DSQ_LOCAL_ON;
 import static me.bechberger.ebpf.runtime.ScxDefinitions.scx_enq_flags.SCX_ENQ_PREEMPT;
 
