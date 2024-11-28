@@ -28,9 +28,6 @@ public class Main {
         Thread clockThread = new ClockThread();
         clockThread.start();
         ThreadControl threadControl = new ThreadControl();
-        ExtendedThreadInfo.getAll().forEach((id, info) -> {
-            System.out.println("Thread " + id + ": " + info.threadName() + " " + info.osThreadId());
-        });
         System.out.println("Looked at os id: " + threadControl.osId(clockThread));
         System.out.println("ClockThread status: " + threadControl.getThreadStatus(clockThread));
         Thread.sleep(100);

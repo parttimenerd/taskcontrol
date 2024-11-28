@@ -56,8 +56,14 @@ public class RestSchedulerClient {
         }
     }
 
+    /** Scheduling status of a thread or task */
     public enum TaskStatus {
-        RUNNING, STOPPED, UNKNOWN;
+        /** The task can be rescheduled */
+        RUNNING,
+        /** The task cannot be rescheduled */
+        STOPPED,
+        /** No setting given, so it can be rescheduled */
+        UNKNOWN;
 
         static TaskStatus fromString(String status) {
             return switch (status) {
