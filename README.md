@@ -20,6 +20,8 @@ GET localhost:8087/taskGroup/{id} to get the status of a task group (i.e. proces
 GET localhost:8087/taskGroup/{id}?restartstopping=true|false to stop or resume a task group
 ```
 
+Be aware that stopping a task for more than 30s will kill the scheduler.
+
 You can select multiple schedulers via `./scheduler.sh` or set the server port:
 
 ```sh
