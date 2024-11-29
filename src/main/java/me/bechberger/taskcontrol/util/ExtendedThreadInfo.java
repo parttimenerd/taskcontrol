@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 /**
  * Extended information on a Java thread
  * @param threadName name of the thread (see {@link Thread#getName()})
- * @param javaThreadId id of the thread in Java (see {@link Thread#getId()})
+ * @param javaThreadId id of the thread in Java (see {@link Thread#threadId()})
  * @param osThreadId operating system thread id
  * @param osPrio priority on operating system level
  * @param userTime elapsed user CPU time (see {@link java.lang.management.ThreadMXBean#getThreadUserTime(long)}

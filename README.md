@@ -100,7 +100,7 @@ task whether the task is stopped or not:
 
 ## Install
 
-Install a 6.12 kernel
+Install a 6.12 (or later) kernel:
 
 On Ubuntu:
 
@@ -119,13 +119,13 @@ sudo apt install linux-cloud-tools-6.12.0-3-generic
 Get a current version of bpftool by downloading it from [GitHub](https://github.com/libbpf/bpftool/releases)
 and storing the location of the binary in `$PROJECT/.bpftool.path`.
 
-You should also have install:
+You should also have installed:
 
 - `libbpf-dev`
 - clang
 - Java 23
 
-Now you just have to build it via:
+Now you just have to build the taskcontrol via:
 
 ```sh
 mvn package

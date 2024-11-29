@@ -55,7 +55,7 @@ public class SchedulerServer implements Callable<Integer> {
             var items = Stream.of(plan.split(","))
                     .filter(part -> !part.isEmpty())
                     .map(part -> {
-                        boolean stopping = part.endsWith("r");
+                        boolean stopping = part.endsWith("s");
                         float duration = Float.parseFloat(part.substring(0, part.length() - 1));
                         return new SchedulePlanItem(Duration.ofNanos(Math.round(duration * 1.0 * 1_000_000_000L)), stopping);
                     })
@@ -303,7 +303,9 @@ public class SchedulerServer implements Callable<Integer> {
             program.attachScheduler();
             new Thread(program::tracePrintLoop).start();
             launchServer(program, port);
-            Thread.sleep(1000000000);
+            while (program.isSchedulerAttachedProperly()) {
+                Thread.sleep(1000);
+            }
         }
         return 0;
     }
