@@ -13,12 +13,12 @@ This project is for you!
 Then use the following APIs:
 
 ```
-GET localhost:8087/help prints you this help
-GET localhost:8087/task/{id} to get the status of a task
-GET localhost:8087/task/{id}?stopping=true|false to stop or resume a task
-GET localhost:8087/task/plan/{id}?plan=s10,r10 to set the plan for a task (e.g. 10s running, 10s stopped)
-GET localhost:8087/task/plan/{id} to get the current plan for a task
-GET localhost:8087/plans the current plans as JSON
+GET localhost:PORT/task/{id} to get the status of a task
+GET localhost:PORT/task/{id}?stopping=true|false to stop or resume a task
+GET localhost:PORT/task/{id}?lotteryPriority=N positive priority for the LotteryScheduler (larger the better)
+GET localhost:PORT/task/plan/{id}?plan=s10,r10 to set the plan for a task (e.g. 10s running, 10s stopped)
+GET localhost:PORT/task/plan/{id} to get the current plan for a task
+GET localhost:PORT/plans the current plans as JSON
 
 The same for taskGroup (process)
 ```
@@ -33,7 +33,7 @@ A FIFO scheduler with a rest API to stop tasks
   -h, --help          Show this help message and exit.
   -p, --port=<port>   The port to listen on
   -s, --scheduler=<schedulerType>
-                      The scheduler to use: fifo
+                      The scheduler to use: fifo, lottery
   -V, --version       Print version information and exit.
 ```
 

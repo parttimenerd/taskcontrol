@@ -14,11 +14,13 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import me.bechberger.taskcontrol.scheduler.BaseScheduler;
 import me.bechberger.taskcontrol.scheduler.FIFOScheduler;
+import me.bechberger.taskcontrol.scheduler.LotteryScheduler;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -34,6 +36,7 @@ public class SchedulerServer implements Callable<Integer> {
     private static final String SERVER_HELP = """
             GET localhost:PORT/task/{id} to get the status of a task
             GET localhost:PORT/task/{id}?stopping=true|false to stop or resume a task
+            GET localhost:PORT/task/{id}?lotteryPriority=N positive priority for the LotteryScheduler (larger the better)
             GET localhost:PORT/task/plan/{id}?plan=s10,r10 to set the plan for a task (e.g. 10s running, 10s stopped)
             GET localhost:PORT/task/plan/{id} to get the current plan for a task
             GET localhost:PORT/plans the current plans as JSON
@@ -108,15 +111,16 @@ public class SchedulerServer implements Callable<Integer> {
                 if (!running.get()) {
                     break;
                 }
-                settingsMap.put(id, new BaseScheduler.TaskSetting(item.stopping()));
+                // TODO: add parsing of other options
+                settingsMap.put(id, new BaseScheduler.TaskSetting(item.stopping(), 1));
                 try {
                     Thread.sleep(item.duration);
                 } catch (InterruptedException e) {
-                    settingsMap.put(id, new BaseScheduler.TaskSetting(false));
+                    settingsMap.put(id, new BaseScheduler.TaskSetting(false, 1));
                     throw new RuntimeException(e);
                 }
             }
-            settingsMap.put(id, new BaseScheduler.TaskSetting(false));
+            settingsMap.put(id, new BaseScheduler.TaskSetting(false, 1));
             removeRunner.run();
         }
 
@@ -208,6 +212,10 @@ public class SchedulerServer implements Callable<Integer> {
             }
 
             String stopping = ctx.queryParam("stopping");
+            String lotteryPriority = ctx.queryParam("lotteryPriority");
+            if (lotteryPriority == null) {
+                lotteryPriority = "1";
+            }
 
             String response;
             if (stopping == null) {
@@ -215,7 +223,7 @@ public class SchedulerServer implements Callable<Integer> {
                         .map(setting -> setting.stop() ? "stopping" : "running")
                         .orElse("not found");
             } else {
-                map.put(id, new BaseScheduler.TaskSetting(Boolean.parseBoolean(stopping)));
+                map.put(id, new BaseScheduler.TaskSetting(Boolean.parseBoolean(stopping), Integer.parseInt(lotteryPriority)));
                 response = "ok";
             }
 
@@ -282,15 +290,24 @@ public class SchedulerServer implements Callable<Integer> {
     private int port;
 
     enum SchedulerType {
-        fifo(FIFOScheduler.class);
-        private final Class<? extends BaseScheduler> schedulerClass;
+        fifo(FIFOScheduler.class),
+        lottery(LotteryScheduler.class);
+        private final Class<BaseScheduler> schedulerClass;
+        private final Consumer<BaseScheduler> init;
+        @SuppressWarnings("unchecked")
+        <T extends BaseScheduler> SchedulerType(Class<T> schedulerClass, Consumer<T> init) {
+            this.schedulerClass = (Class<BaseScheduler>) schedulerClass;
+            this.init = (Consumer<BaseScheduler>) init;
+        }
         SchedulerType(Class<? extends BaseScheduler> schedulerClass) {
-            this.schedulerClass = schedulerClass;
+            this(schedulerClass, _ -> {});
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         public BaseScheduler load() {
-            return BPFProgram.load((Class<BPFProgram>)(Class)schedulerClass);
+            var sched = BPFProgram.load((Class<BPFProgram>)(Class)schedulerClass);
+            init.accept((BaseScheduler) sched);
+            return (BaseScheduler)sched;
         }
     }
 
