@@ -62,14 +62,6 @@ public abstract class LotteryScheduler extends BPFProgram implements BaseSchedul
 
     @BPFFunction
     @AlwaysInline
-    public boolean shouldStop(Ptr<TaskDefinitions.task_struct> p) {
-        TaskSetting setting = new TaskSetting(false, 1);
-        getSetting(p, Ptr.of(setting));
-        return setting.stop();
-    }
-
-    @BPFFunction
-    @AlwaysInline
     public int getPriorityIfNotStopped(Ptr<TaskDefinitions.task_struct> p) {
         TaskSetting setting = new TaskSetting(false, 1);
         getSetting(p, Ptr.of(setting));
