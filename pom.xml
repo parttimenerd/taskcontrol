@@ -17,7 +17,7 @@
         <url>https://github.com/parttimenerd/taskcontrol</url>
     </scm>
 
-    <inceptionYear>2023</inceptionYear>
+    <inceptionYear>2024</inceptionYear>
     <description>A custom Linux scheduler for concurrency testing</description>
 
     <developers>

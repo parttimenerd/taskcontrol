@@ -100,24 +100,7 @@ task whether the task is stopped or not:
 
 ## Install
 
-Install a 6.12 (or later) kernel:
-
-On Ubuntu:
-
-```sh
-sudo add-apt-repository ppa:canonical-kernel-team/unstable
-```
-
-And replace `oracular` with `plucky` in `/etc/apt/sources.list.d/canonical-kernel-team-ubuntu-unstable-oracular.sources`.
-Then run:
-
-```sh
-sudo apt update
-sudo apt install linux-cloud-tools-6.12.0-3-generic
-```
-
-Get a current version of bpftool by downloading it from [GitHub](https://github.com/libbpf/bpftool/releases)
-and storing the location of the binary in `$PROJECT/.bpftool.path`.
+Install a 6.12 (or later) kernel, on Ubuntu use [mainline](https://github.com/bkw777/mainline) if you're on Ubuntu 24.10 or older.
 
 You should also have installed:
 
