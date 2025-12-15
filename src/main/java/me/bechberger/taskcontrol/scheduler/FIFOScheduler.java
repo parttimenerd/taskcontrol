@@ -40,7 +40,7 @@ public abstract class FIFOScheduler extends BPFProgram implements BaseScheduler 
     @Override
     public void enqueue(Ptr<TaskDefinitions.task_struct> p, long enq_flags) {
         var sliceLength = ((@Unsigned int) 5_000_000) / scx_bpf_dsq_nr_queued(SHARED_DSQ_ID);
-        scx_bpf_dispatch(p, SHARED_DSQ_ID, sliceLength, enq_flags);
+        scx_bpf_dsq_insert(p, SHARED_DSQ_ID, sliceLength, enq_flags);
     }
 
     @BPFFunction
@@ -61,7 +61,7 @@ public abstract class FIFOScheduler extends BPFProgram implements BaseScheduler 
         if (!bpf_cpumask_test_cpu(cpu, p.val().cpus_ptr)) {
             return false;
         }
-        return scx_bpf_dispatch_from_dsq(iter, p, SCX_DSQ_LOCAL_ON.value() | cpu, SCX_ENQ_PREEMPT.value());
+        return scx_bpf_dsq_move(iter, p, SCX_DSQ_LOCAL_ON.value() | cpu, SCX_ENQ_PREEMPT.value());
     }
 
     @Override
