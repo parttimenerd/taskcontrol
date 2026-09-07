@@ -1,0 +1,90 @@
+tag: poc
+no_release: true
+tagline: eBPF-based Linux scheduler with a REST API for stopping, resuming, and time-planning individual
+  tasks and processes at the OS level. Includes a Java client (ThreadControl) for per-thread control
+  from within a JVM. Requires Linux 6.13+ and root.
+tagline_short: eBPF Linux scheduler with REST API — stop, resume, and time-plan tasks and processes.
+when_to_use:
+- You want to stop and resume specific processes or JVM threads at the OS scheduler level from Java
+- You need time-based plans (e.g. stop 10s, run 5s, repeat) for fine-grained workload control on Linux
+when_not_to_use:
+- You are on macOS or Windows (Linux only, kernel 6.13+)
+- You want thread priority tuning without stop/resume control — use standard OS priority APIs instead
+install:
+- label: Build from source
+  lang: bash
+  code: |
+    # requires Linux 6.13+, libbpf-dev, clang, Java 23
+    git clone https://github.com/parttimenerd/taskcontrol
+    cd taskcontrol
+    mvn package
+usage:
+- label: REST API
+  lang: bash
+  code: |
+    sudo ./scheduler.sh                                               # start (default port 8087)
+    curl "localhost:8087/taskGroup/$(pgrep -f MyApp)?stopping=true"  # stop a process
+    curl "localhost:8087/taskGroup/$(pgrep -f MyApp)?stopping=false" # resume it
+- label: Java API
+  lang: java
+  code: |
+    ThreadControl tc = new ThreadControl(); // connects to scheduler on default port 8087
+    tc.stopThread(myThread);
+    Thread.sleep(5000);
+    tc.resumeThread(myThread);
+how_to:
+- title: Stop and resume a process via the REST API
+  body: |
+    Start the scheduler first (needs root), then use curl with the process PID:
+    ```bash
+    sudo ./scheduler.sh        # starts on port 8087 by default
+    java samples/Ticker.java & # start a sample process
+    curl "localhost:8087/taskGroup/$(pgrep -f Ticker)?stopping=true"
+    # process stops being rescheduled
+    curl "localhost:8087/taskGroup/$(pgrep -f Ticker)?stopping=false"
+    # process resumes
+    ```
+    `taskGroup/{pid}` targets all threads of a process. Use `task/{tid}` for a single thread.
+    Check status with a plain GET: `curl localhost:8087/taskGroup/$(pgrep -f Ticker)`
+    Returns `running`, `stopping`, or `unknown`.
+
+- title: Set a stop/run time plan for a process
+  body: |
+    The `plan` parameter is a comma-separated sequence of items: letter (`s`=stop, `r`=run)
+    followed by a number of seconds. Stopping durations must be under 25s each:
+    ```bash
+    # stop 10s, run 5s, stop 10s, run 10s
+    curl "localhost:8087/taskGroup/plan/$(pgrep -f Ticker)?plan=s10,r5,s10,r10"
+    ```
+    Get the current plan:
+    ```bash
+    curl "localhost:8087/taskGroup/plan/$(pgrep -f Ticker)"
+    ```
+    Use `task/plan/{tid}` to target a single thread instead of a whole process.
+
+- title: Control JVM threads directly from Java
+  body: |
+    `ThreadControl` maps Java `Thread` objects to OS thread IDs and talks to the running
+    scheduler. The scheduler must already be running before constructing `ThreadControl`:
+    ```java
+    ThreadControl tc = new ThreadControl();         // default port 8087
+    // ThreadControl tc = new ThreadControl(9000);  // custom port
+
+    Thread worker = new WorkerThread();
+    worker.start();
+
+    System.out.println("OS thread id: " + tc.osId(worker));
+    System.out.println("Status: " + tc.getThreadStatus(worker)); // RUNNING, STOPPED, or UNKNOWN
+
+    tc.stopThread(worker);
+    Thread.sleep(5000);
+    tc.resumeThread(worker);
+    ```
+
+- title: Choose a scheduler and port
+  body: |
+    ```bash
+    sudo ./scheduler.sh -s fifo -p 9000
+    ```
+    Available schedulers: `fifo` (default), `lottery` (not yet fully implemented).
+    Stopping a task for more than 30s will kill the scheduler; keep individual stop durations under 25s.
